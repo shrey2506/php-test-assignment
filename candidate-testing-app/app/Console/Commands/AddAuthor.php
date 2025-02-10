@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Http;
 
 class AddAuthor extends Command
 {
@@ -11,7 +12,7 @@ class AddAuthor extends Command
      *
      * @var string
      */
-    protected $signature = 'app:add-author';
+    protected $signature = 'author:add';
 
     /**
      * The console command description.
@@ -25,17 +26,19 @@ class AddAuthor extends Command
      */
     public function handle()
     {
-        $firstName = $this->ask('First Name');
-        $lastName = $this->ask('Last Name');
-        $birthday = $this->ask('Birthday (YYYY-MM-DD)');
-        $biography = $this->ask('Biography');
-        $gender = $this->choice('Gender', ['male', 'female'], 0);
-        $placeOfBirth = $this->ask('Place of Birth');
+        // Prompt the user for author details
+        $firstName    = $this->ask('Enter first name');
+        $lastName     = $this->ask('Enter last name');
+        $birthday     = $this->ask('Enter birthday (YYYY-MM-DD)');
+        $biography    = $this->ask('Enter biography');
+        $gender       = $this->choice('Select gender', ['male', 'female'], 0);
+        $placeOfBirth = $this->ask('Enter place of birth');
 
-        // API endpoint for creating a new author.
-        $apiUrl = 'https://candidate-testing.com/api/v2/authors';
+        // Retrieve the API token from the environment, or prompt the user if not set.
+        // You can add your token to your .env file as API_TOKEN=your_token.
+        $token = env('API_TOKEN') ?: $this->ask('Enter your API token');
 
-        // Prepare the payload.
+        // Prepare the payload for the API
         $payload = [
             'first_name'     => $firstName,
             'last_name'      => $lastName,
@@ -45,17 +48,23 @@ class AddAuthor extends Command
             'place_of_birth' => $placeOfBirth,
         ];
 
-        $response = Http::withHeaders([
-            'Accept'       => 'application/json',
-            'Content-Type' => 'application/json',
-        ])->post($apiUrl, $payload);
+        // API endpoint for creating a new author
+        $apiUrl = 'https://candidate-testing.com/api/v2/authors';
 
+        // Send a POST request to the API with the payload
+        $response = Http::withToken($token)
+            ->withHeaders([
+                'Accept'       => 'application/json',
+                'Content-Type' => 'application/json',
+            ])
+            ->post($apiUrl, $payload);
+
+        // Handle the API response
         if ($response->successful()) {
             $author = $response->json();
-            $this->info('Author created successfully. ID: ' . $author['id']);
+            $this->info('Author created successfully with ID: ' . $author['id']);
         } else {
-            $error = $response->json()['message'] ?? 'Error creating author';
-            $this->error('Failed to create author: ' . $error);
+            $this->error('Failed to create author. Error: ' . $response->body());
         }
     }
 }
