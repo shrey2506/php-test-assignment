@@ -1,37 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Dashboard</title>
+    <title>Authors List</title>
     <meta charset="utf-8">
-    <style>
-        table { border-collapse: collapse; width: 100%; }
-        th, td { padding: 8px 12px; border: 1px solid #ccc; }
-        th { background-color: #f4f4f4; }
-    </style>
 </head>
 <body>
-    <h1>Dashboard</h1>
-    
-    <!-- Display the logged-in user's name -->
-    <p>
-        Welcome, 
-        {{ session('user')['first_name'] ?? 'User' }} 
-        {{ session('user')['last_name'] ?? '' }}
-    </p>
-    <p><a href="{{ route('logout') }}">Logout</a></p>
+    <h1>Authors</h1>
 
-    <!-- Display any flash messages -->
     @if(session('success'))
-        <p style="color: green;">{{ session('success') }}</p>
+        <p style="color:green;">{{ session('success') }}</p>
     @endif
 
-    @if(session('api_error'))
-        <p style="color: red;">{{ session('api_error') }}</p>
+    @if($errors->has('api_error'))
+        <p style="color:red;">{{ $errors->first('api_error') }}</p>
     @endif
 
-    <h2>Authors</h2>
-
-    <table>
+    <table border="1" cellpadding="5" cellspacing="0">
         <thead>
             <tr>
                 <th>ID</th>
@@ -67,5 +51,6 @@
         </tbody>
     </table>
 
+    <p><a href="{{ route('dashboard') }}">Back to Dashboard</a></p>
 </body>
 </html>
